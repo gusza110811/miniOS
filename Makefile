@@ -2,8 +2,6 @@
 
 all: os.img
 
-build: os.img
-
 os.img: boot.bin kernel.bin
 	cat boot.bin > os.img
 	truncate os.img --size 17k

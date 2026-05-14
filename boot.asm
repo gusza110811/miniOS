@@ -72,16 +72,16 @@ boot {
 find_kernel {
     mov bx, 2
     mov cx, 31
-    mov dx, 0x7e00
+    mov ax, 0x7e00
 
     loop:
-        mov ax, boot_target
+        mov dx, boot_target
         call strcmp
 
-        cmp ax, 0
+        cmp dx, 0
         jz done
 
-        add dx, 0x10
+        add ax, 0x10
         add bx, 1
         sub cx, 1
         
@@ -97,12 +97,14 @@ find_kernel {
 
 ; ax <- string 0
 ; dx <- string 1
-; ax -> result
-; 0 -> equal, 1 -> string 0 < string 1, 2 -> string 1 < string 0
+; dx -> result
+; 0 -> equal, 1 -> not equal
 strcmp {
+    push ax
     push bx
     push cx
-    push dx
+    mov bx, 1
+    push bx
     loop:
         mov bx, dx
         mov cx, [b bx]
@@ -110,8 +112,7 @@ strcmp {
         mov bx, [b bx]
 
         cmp bx, cx
-        jn less
-        jnz more
+        jnz nequal
 
         cmp bx, 0
         jz equal
@@ -121,23 +122,12 @@ strcmp {
 
         jmp loop
 
-    less:
-        mov ax, 1
-        pop dx
-        pop cx
-        pop bx
-        ret
-    more:
-        mov ax, 2
-        pop dx
-        pop cx
-        pop bx
-        ret
     equal:
-        mov ax, 0
         pop dx
-        pop cx
-        pop bx
+        mov dx, 0
+        push dx
+    nequal:
+        popa
         ret
 
 }
