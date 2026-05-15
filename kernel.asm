@@ -2,10 +2,13 @@
 ; with all segments set to 1000
 
 KERNEL_SEGMENT = 0x1000
+PROGRAM_SEGMENT = 0x2000
 
 file_table = 0x8000
 
-kmain {
+input_buffer = 0x8200
+
+kload {
     mov bx, splash
     call print_raw
 
@@ -20,7 +23,36 @@ kmain {
     call read_table
 
     call list_file
-    hlt
+}
+
+kmain {
+
+    mov ax, 0
+    mov [input_buffer], ax
+
+    ; prompt
+    mov bx, prompt
+    call print_raw
+    mov bx, input_buffer
+    call input
+
+    mov ax, [input_buffer]
+    cmp ax, 0
+    jz kmain
+
+    mov dx, input_buffer
+    call find_file
+    cmp bx, 32
+    jz kmain
+
+    mov ax, bx
+    mov bx, 0
+    mov ds, PROGRAM_SEGMENT
+    call load
+    mov ds, KERNEL_SEGMENT
+
+    call run_file
+
 }
 
 read_table {
@@ -67,7 +99,6 @@ list_file {
 ; bx -> location
 ; find index of file
 ; 32 if not found
-; affects all gpr
 find_file {
     mov bx, 0
     mov cx, 31
@@ -88,9 +119,12 @@ find_file {
         cmp cx, 0
         jnz loop ; continue
 
+        push dx
+
         add bx, 1
 
     done:
+        pop dx
         ret
 
 }
@@ -110,18 +144,73 @@ load {
     cmp ax, 0
     jnz disk_fail
     popa
+    ret
+}
+
+; bx <- pointer to buffer
+input {
+    pusha
+    loop:
+    mov dx, 0xffff
+    in ax, dx
+    cmp ax, 0
+    jz loop
+
+    cmp ax, '\b'
+    bz bksp
+
+    cmp ax, '\n'
+    jz crlf
+
+    cmp ax, '\r'
+    jz crlf
+
+    out dx, ax
+
+    mov [b bx], ax
+    add bx, 1
+    jmp loop
+
+    ; affect cx
+    crlf {
+        mov cx, '\r'
+        out dx, cx
+        mov cx, '\n'
+        out dx, cx
+        mov cx, 0
+        mov [b bx], cx
+        popa
+        ret
+    }
+
+    ; affect cx, bx--
+    bksp {
+        mov cx, ' '
+        out dx, ax
+        out dx, cx
+        out dx, ax
+        sub bx, 1
+        mov ax, [b bx]
+        jmp loop
+    }
 }
 
 ; assume the binary loaded at 20000
 ; sets all segment to 2000
 ; then far jump to 2000:0000
 run_file {
-
+    mov ds, PROGRAM_SEGMENT
+    mov ss, ds
+    mov es, ds
+    mov bp, 0
+    mov sp, 0
+    jmpf PROGRAM_SEGMENT, 0
 }
 
-; ax <- string 1
-; dx <- string 2
-; ax -> result (0 if equal, 1 if not)
+; ax <- string 0
+; dx <- string 1
+; dx -> result
+; 0 -> equal, 1 -> not equal
 strcmp {
     push ax
     push bx
@@ -254,11 +343,17 @@ ivt {
     .word load
     .word KERNEL_SEGMENT
 
+    ;int 0x21
+    .word
+    .word KERNEL_SEGMENT
+
 }
 ivt_end:
 ivt_length = ivt_end-ivt
 
-disk_fail_err:  .asciiz "Disk Failure\r\n"
-not_found_err:  .asciiz "File not found\r\n"
+disk_fail_err:  .asciiz "Disk Fail\r\n"
+not_found_err:  .asciiz "Not found\r\n"
 
-splash:   .asciiz "\r\nMiniOS\r\n"
+prompt:     .asciiz "run > "
+
+splash:     .asciiz "MiniOS\r\n"

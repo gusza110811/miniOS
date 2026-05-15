@@ -2,11 +2,11 @@
 
 all: osall.img
 
-osall.img: os.img test.bin
+osall.img: os.img test0.bin test1.bin
 	cp os.img osall.img
 
-	badfs osall.img import test.bin test
-
+	badfs osall.img import test0.bin test0
+	badfs osall.img import test1.bin test1
 os.img: boot.bin kernel.bin
 	cat boot.bin > os.img
 	truncate os.img --size 17k
@@ -15,21 +15,20 @@ os.img: boot.bin kernel.bin
 
 boot.bin: boot.asm
 	ma-as boot.asm
-
 kernel.bin: kernel.asm
 	ma-as kernel.asm
 
 
-test.bin: test.asm
-	ma-as test.asm
+test0.bin: test0.asm
+	ma-as test0.asm
+test1.bin: test1.asm
+	ma-as test1.asm
 
 
 run: os.img
 	ma-vm --hda os.img
-
 debug: os.img
 	ma-vm --hda os.img --dump
-
 trace: os.img
 	ma-vm --hda os.img --dump --trace --trace-when 0x10000
 

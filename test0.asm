@@ -1,4 +1,6 @@
-; loaded to 2000:0000
+; program shouldnt assume their cs
+; but the a program started by the kernel
+; is always at 2000:0000
 
 main {
     mov bx, text
