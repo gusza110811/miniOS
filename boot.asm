@@ -32,18 +32,13 @@ boot {
     cmp ax, 0
     jnz disk_fail
 
-    mov bx, find_log
+    mov bx, load_log
     call print_raw
 
     call find_kernel
 
     cmp bx, 34
     jz no_kernel
-    
-    push bx
-    mov bx, load_log
-    call print_raw
-    pop bx
 
     ; load kernel
     mov ax, bx
@@ -67,7 +62,7 @@ boot {
 }
 
 ; bx -> location of kernel
-; 32 if not found
+; 34 if not found
 ; affects all gpr
 find_kernel {
     mov bx, 2
@@ -167,7 +162,6 @@ disk_fail_err:  .asciiz "Disk Failure\r\n"
 no_kernel_err:  .asciiz "No Kernel found\r\n"
 
 start_log:  .asciiz "MiniOS Boot\r\n"
-find_log:   .asciiz "Finding KERNEL\r\n"
-load_log:   .asciiz "Loading KERNEL\r\n"
+load_log:   .asciiz "Loading\r\n"
 
 boot_target: .asciiz "KERNEL"
