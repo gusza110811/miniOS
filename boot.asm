@@ -162,6 +162,6 @@ disk_fail_err:  .asciiz "Disk Failure\r\n"
 no_kernel_err:  .asciiz "No Kernel found\r\n"
 
 start_log:  .asciiz "MiniOS Boot\r\n"
-load_log:   .asciiz "Loading\r\n"
+load_log:   .asciiz "Loading\r\n\r\n"
 
 boot_target: .asciiz "KERNEL"

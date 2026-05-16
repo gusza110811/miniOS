@@ -25,13 +25,16 @@ test1.bin: test1.asm
 	ma-as test1.asm
 
 
-run: os.img
-	ma-vm --hda os.img
-debug: os.img
-	ma-vm --hda os.img --dump
-trace: os.img
-	ma-vm --hda os.img --dump --trace --trace-when 0x10000
-
+run: osall.img
+	ma-vm --hda osall.img
+debug: osall.img
+	ma-vm --hda osall.img --dump
+btrace: osall.img
+	ma-vm --hda osall.img --dump --trace
+ktrace: osall.img
+	ma-vm --hda osall.img --dump --trace --trace-when 0x10000
+utrace: osall.img
+	ma-vm --hda osall.img --dump --trace --trace-when 0x20000
 
 clean:
 	rm os.img

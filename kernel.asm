@@ -315,13 +315,6 @@ newline {
     ret
 }
 
-not_found {
-    pusha
-    mov bx, not_found_err
-    call print_raw
-    popa
-}
-
 disk_fail {
     mov bx, disk_fail_err
     call print_raw
@@ -352,7 +345,6 @@ ivt_end:
 ivt_length = ivt_end-ivt
 
 disk_fail_err:  .asciiz "Disk Fail\r\n"
-not_found_err:  .asciiz "Not found\r\n"
 
 prompt:     .asciiz "run > "
 
